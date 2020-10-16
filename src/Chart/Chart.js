@@ -1,13 +1,15 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import Chart from 'chart.js';
+import { Pie } from 'react-chartjs-2';
 
 function CreateChart() {
+  const [currentData, setData] = useState([]);
+  const [currentLabel, setLabels] = useState([]);
 
   var dataSource = {
     datasets: [
         {
-        data: [],
+        data: currentData,
         backgroundColor: [
             "#ffcd56",
             "#ff6384",
@@ -20,33 +22,25 @@ function CreateChart() {
         ],
         },
     ],
-    labels: [],
+    labels: currentLabel,
   };
 
-  function createChart() {
-    var ctx = document.getElementById("myChart").getContext("2d");
-    var myPieChart = new Chart(ctx, {
-      type: "pie",
-      data: dataSource,
-    });
-  }
-
-  function getBudget() {
+  useEffect(() => {
     axios.get("http://localhost:3000/budget.json").then(function (res) {
       console.log(res.data);
+      let titles = [];
       for (var i = 0; i < res.data.myBudget.length; i++) {
-        dataSource.datasets[0].data[i] = res.data.myBudget[i].budget;
-        dataSource.labels[i] = res.data.myBudget[i].title;
+        setData([...currentData, res.data.myBudget[i].budget]);
+        titles.push(res.data.myBudget[i].title);
       }
-      createChart();
+      setLabels(titles);
     });
-  }
+  }, []);
 
-  getBudget();
 
   return (
       <>
-        <canvas id="myChart" width="400" height="400"></canvas>
+        <Pie data={dataSource} width={400} height={400} />
       </>
   );
 }
